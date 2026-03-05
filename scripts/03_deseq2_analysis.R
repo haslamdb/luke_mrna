@@ -8,6 +8,7 @@ library(ggplot2)
 library(pheatmap)
 library(RColorBrewer)
 library(UpSetR)
+library(ggrepel)
 
 # ---- Setup ----
 project_dir <- "/home/david/projects/luke_mrna"
@@ -52,6 +53,9 @@ dds <- DESeqDataSetFromMatrix(
 keep <- rowSums(counts(dds) >= 10) >= 3  # at least 3 samples with >= 10 counts
 dds <- dds[keep, ]
 cat(sprintf("\nGenes after filtering: %d\n", nrow(dds)))
+
+# Gene ID to name mapping
+gene_names <- setNames(raw$gene_name, raw$Geneid)
 
 # Run DESeq2
 dds <- DESeq(dds)
@@ -109,9 +113,10 @@ for (comp in comparisons) {
   cat(sprintf("  Down (padj<0.05, LFC<-1): %d\n",
     sum(res$padj < 0.05 & res$log2FoldChange < -1, na.rm = TRUE)))
 
-  # Save results
+  # Save results with gene names
   res_df <- as.data.frame(res)
   res_df$gene_id <- rownames(res_df)
+  res_df$gene_name <- gene_names[rownames(res_df)]
   write.csv(res_df, file.path(out_dir, paste0("DEG_", contrast_name, ".csv")),
             row.names = FALSE)
 
@@ -121,24 +126,35 @@ for (comp in comparisons) {
   sig <- rownames(res)[which(res$padj < 0.05 & abs(res$log2FoldChange) > 1)]
   deg_lists[[contrast_name]] <- sig
 
-  # Volcano plot
+  # Volcano plot with gene name labels
   res_plot <- as.data.frame(res)
+  res_plot$gene_name <- gene_names[rownames(res_plot)]
   res_plot$significant <- "NS"
   res_plot$significant[res_plot$padj < 0.05 & res_plot$log2FoldChange > 1] <- "Up"
   res_plot$significant[res_plot$padj < 0.05 & res_plot$log2FoldChange < -1] <- "Down"
   res_plot$significant <- factor(res_plot$significant, levels = c("Down", "NS", "Up"))
+
+  # Label top 15 DEGs by adjusted p-value (significant only)
+  res_plot$label <- NA
+  sig_rows <- which(res_plot$significant != "NS")
+  if (length(sig_rows) > 0) {
+    top_idx <- sig_rows[order(res_plot$padj[sig_rows])][1:min(15, length(sig_rows))]
+    res_plot$label[top_idx] <- res_plot$gene_name[top_idx]
+  }
 
   p_vol <- ggplot(res_plot, aes(log2FoldChange, -log10(pvalue), color = significant)) +
     geom_point(alpha = 0.5, size = 1) +
     scale_color_manual(values = c("Down" = "blue", "NS" = "grey70", "Up" = "red")) +
     geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "grey40") +
     geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "grey40") +
+    geom_text_repel(aes(label = label), size = 3, max.overlaps = 20,
+                    show.legend = FALSE, color = "black") +
     theme_bw(base_size = 12) +
     ggtitle(contrast_name) +
     xlab("log2 Fold Change") +
     ylab("-log10(p-value)")
   ggsave(file.path(out_dir, paste0("volcano_", contrast_name, ".pdf")),
-         p_vol, width = 7, height = 5)
+         p_vol, width = 8, height = 6)
 }
 
 # ---- UpSet plot of DEGs across comparisons ----
@@ -165,15 +181,7 @@ top_genes <- unique(unlist(lapply(all_results, function(res) {
   head(rownames(res[order(res$padj), ]), 50)
 })))
 
-# Get gene names from the GTF annotation in featureCounts output
-gene_names <- setNames(raw$gene_name, raw$Geneid)
-if ("gene_name" %in% colnames(raw)) {
-  # Map gene IDs to names for labeling
-  top_labels <- ifelse(top_genes %in% names(gene_names),
-                       gene_names[top_genes], top_genes)
-} else {
-  top_labels <- top_genes
-}
+top_labels <- gene_names[top_genes]
 
 mat <- assay(vsd)[top_genes[top_genes %in% rownames(vsd)], ]
 mat <- mat - rowMeans(mat)  # center
