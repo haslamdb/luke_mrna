@@ -1,0 +1,17 @@
+# Aligned BAM files (large)
+aligned/
+
+# STAR log
+Log.out
+
+# FastQC reports (can regenerate)
+fastqc/
+
+# General
+*.bam
+*.bam.bai
+*.sam
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz

@@ -1,0 +1,15 @@
+Status	/home/david/projects/luke_mrna/aligned/exTreg/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/exTreg-Nov19/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/exTreg-Nov21/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/Never-Treg-Nov11/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/Never-Treg-Nov19-2/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/Never-Treg-Nov21/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/Recent-Treg/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/Recent-Treg-Nov19/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/Recent-Treg-Nov21/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/Stable-Treg-Nov11/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/Stable-Treg-Nov19-2/Aligned.sortedByCoord.out.bam	/home/david/projects/luke_mrna/aligned/Stable-Treg-Nov21-2/Aligned.sortedByCoord.out.bam
+Assigned	43440071	43073676	38083055	44853191	33260584	50531208	32077356	42252223	30417834	49817831	41174999	43102744
+Unassigned_Unmapped	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Read_Type	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Singleton	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_MappingQuality	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Chimera	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_FragmentLength	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Duplicate	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_MultiMapping	16418979	15427604	14040959	18530988	13010754	20469376	12139930	15436846	11046383	19243541	16062263	16375924
+Unassigned_Secondary	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_NonSplit	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_NoFeatures	21319134	26859868	22576593	21271052	21043794	26259251	18160982	26871623	15279033	28789374	27821063	28254551
+Unassigned_Overlapping_Length	0	0	0	0	0	0	0	0	0	0	0	0
+Unassigned_Ambiguity	4916624	4915354	3967043	6439464	3726502	5963034	3593813	4504131	3001319	5716377	4520653	5161736

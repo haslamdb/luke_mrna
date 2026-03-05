@@ -1,0 +1,13 @@
+sample_id,fastq_prefix,cell_type,mouse,sort_date
+Never-Treg-Nov11,Never-Treg-Nov11_S18_L003,Never_Treg,mouse1,Nov11
+Never-Treg-Nov19-2,Never-Treg-Nov19-2_S13_L003,Never_Treg,mouse2,Nov19
+Never-Treg-Nov21,Never-Treg-Nov21_S9_L003,Never_Treg,mouse3,Nov21
+exTreg,exTreg_S20_L003,exTreg,mouse1,Nov11
+exTreg-Nov19,exTreg-Nov19_S16_L003,exTreg,mouse2,Nov19
+exTreg-Nov21,exTreg-Nov21_S12_L003,exTreg,mouse3,Nov21
+Stable-Treg-Nov11,Stable-Treg-Nov11_S17_L003,Stable_Treg,mouse1,Nov11
+Stable-Treg-Nov19-2,Stable-Treg-Nov19-2_S15_L003,Stable_Treg,mouse2,Nov19
+Stable-Treg-Nov21-2,Stable-Treg-Nov21-2_S11_L003,Stable_Treg,mouse3,Nov21
+Recent-Treg,Recent-Treg_S19_L003,Recent_Treg,mouse1,Nov11
+Recent-Treg-Nov19,Recent-Treg-Nov19_S14_L003,Recent_Treg,mouse2,Nov19
+Recent-Treg-Nov21,Recent-Treg-Nov21_S10_L003,Recent_Treg,mouse3,Nov21
