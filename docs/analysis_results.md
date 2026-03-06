@@ -33,6 +33,8 @@ All differential expression results reported here use **apeglm log2 fold change 
 | 5. Cell type signatures | `05_venn_cell_type_pathways.R` | ggVennDiagram, clusterProfiler | Characteristic genes UP vs at least 2 of 3 other populations |
 | 6. LFC shrinkage | `06_lfc_shrinkage.R` | DESeq2 + apeglm | All 6 pairwise comparisons, baseMean >= 50 |
 | 7. exTreg vs Stable_Treg | `07_extreg_vs_stable_deep_dive.R` | DESeq2 + apeglm | Targeted comparison, no baseMean filter |
+| 8. exTreg vs Stable figures | `08_extreg_stable_figures.R` | DESeq2 + apeglm | Polyfunctional phenotype figures |
+| 9. Ambidextrous phenotype | `09_ambidextrous_phenotype.R` | DESeq2 + apeglm | Retained suppressive + gained effector analysis |
 
 ### Alignment & Quantification Summary
 
@@ -296,6 +298,76 @@ This pattern is consistent with the Treg to Tfr to exTreg conversion model: exTr
 
 ---
 
+## exTreg "Ambidextrous" Phenotype: Retained Suppressive Capacity + Gained Effector Function
+
+A key finding is that exTregs do not simply lose suppressive function and gain effector function — they retain substantial Treg-associated suppressive machinery while simultaneously acquiring polyfunctional cytokine production. This "ambidextrous" phenotype is consistent with Luke's observation that these cells can become "re-Tregs" and may function as both pro-inflammatory and pro-tolerogenic depending on context.
+
+### Suppressive Molecules Robustly Retained (exTreg vs Never_Treg, apeglm shrunken)
+
+Nine Treg-associated suppressive/tolerogenic molecules are significantly higher in exTregs than conventional T cells:
+
+| Gene | Protein | Function | exTreg | Never_Treg | Shrunken LFC | padj | % of Stable_Treg |
+|---|---|---|---|---|---|---|---|
+| **Nrp1** | Neuropilin-1 | Potentiates TGF-beta signaling | 12,410 | 413 | 4.87 | 9.4e-56 | 67% |
+| **Ikzf2** | Helios | Thymic Treg TF, stabilizes suppressive program | 39,172 | 2,503 | 3.87 | 2.6e-22 | 47% |
+| **Ctla4** | CTLA-4 | Competitive CD28 inhibition, IDO induction | 7,918 | 1,117 | 2.80 | 3.1e-21 | 25% |
+| **Nt5e** | CD73 | Adenosine generation (immunosuppressive) | 16,153 | 1,959 | 2.96 | 1.1e-14 | 52% |
+| **Pdcd1** | PD-1 | Co-inhibitory receptor | 3,309 | 92 | 5.61 | 8.3e-05 | 1,054%* |
+| **Tigit** | TIGIT | Inhibitory receptor | 6,020 | 284 | 4.58 | 9.4e-15 | 125%* |
+| **Lag3** | LAG-3 | MHC-II inhibition | 1,654 | 69 | 4.45 | 2.1e-05 | 217%* |
+| **Itgb8** | Integrin-beta8 | Activates latent TGF-beta | 3,527 | 154 | 4.11 | 1.0e-03 | 99% |
+| **Icos** | ICOS | Treg maintenance, IL-10 induction | 21,441 | 7,557 | 1.46 | 9.8e-10 | 52% |
+
+*PD-1, TIGIT, and LAG-3 exceed Stable_Treg levels — these are not just retained but actively upregulated, consistent with exhaustion/follicular activation.
+
+**Key distinction**: Foxp3-INDEPENDENT suppressive molecules (Nrp1, CTLA-4, CD73, Itgb8, Helios) are robustly retained at 25-99% of Stable_Treg levels. Only Foxp3-DEPENDENT effectors are fully lost:
+
+| Gene | Protein | exTreg | Stable_Treg | % Retained | Note |
+|---|---|---|---|---|---|
+| **Foxp3** | FOXP3 | 191 | 69,700 | 0.1% | Master TF — lost by definition |
+| **Lrrc32** | GARP | 980 | 47,187 | 2% | Foxp3 directly transactivates |
+| **Fgl2** | FGL-2 | 187 | 4,933 | 2% | Foxp3-dependent suppressive cytokine |
+
+### TGF-beta Signaling Axis: Retained Activation Machinery
+
+The TGF-beta signaling pathway shows a striking pattern where exTregs retain the machinery to activate and respond to TGF-beta:
+
+| Gene | Protein | Role | exTreg | Never_Treg | Stable_Treg | Key finding |
+|---|---|---|---|---|---|---|
+| **Nrp1** | Neuropilin-1 | Potentiates TGF-beta signaling | 12,410 | 413 | 18,233 | 67% of Stable_Treg |
+| **Itgb8** | Integrin-beta8 | Activates latent TGF-beta | 3,527 | 154 | 3,553 | Equal to Stable_Treg |
+| **Itgav** | Integrin-alpha-V | Partners with Itgb8 | 6,745 | 3,295 | 6,793 | Equal to Stable_Treg |
+| **Smad7** | SMAD7 | TGF-beta pathway INHIBITOR | 2,063 | 7,553 | 5,227 | 3.7x LOWER than Never_Treg |
+| **Smad2** | SMAD2 | Signal transducer | 2,148 | 2,077 | 667 | Higher than Stable_Treg |
+| **Tgfb1** | TGF-beta1 | Ligand | 3,462 | 2,937 | 6,661 | Maintained |
+| **Lrrc32** | GARP | Membrane TGF-beta presentation | 980 | 58 | 47,187 | Lost (Foxp3-dependent) |
+
+**Critical insight**: exTregs have the machinery to activate latent TGF-beta (Itgb8 at Stable_Treg levels) and to potentiate its signaling (high Nrp1), while simultaneously having REDUCED expression of the pathway inhibitor Smad7 (LFC = -1.74, padj = 1.2e-07 vs Never_Treg). This suggests exTregs may retain or even enhance TGF-beta-mediated suppressive capacity through Foxp3-independent mechanisms, even though GARP-dependent membrane TGF-beta presentation is lost.
+
+### Implications for "Re-Treg" Potential
+
+The retention of suppressive molecules has direct implications for Luke's observation that exTregs can become "re-Tregs":
+
+1. **CTLA-4, Nrp1, CD73** — These provide functional suppressive capacity independent of Foxp3. exTregs don't need to re-express Foxp3 to suppress through these pathways.
+
+2. **Helios (Ikzf2)** at 39,172 counts — Helios is a transcriptional stabilizer of Treg identity. Its high expression in exTregs suggests the epigenetic landscape remains "Treg-primed," which would facilitate re-conversion to Foxp3+ cells.
+
+3. **TGF-beta activation via Itgb8** — exTregs retain Stable_Treg-level expression of the integrin that activates latent TGF-beta in the microenvironment. This is particularly relevant because TGF-beta can drive Foxp3 re-expression (peripheral Treg induction), creating a potential positive feedback loop for re-Treg conversion.
+
+4. **Low Smad7** — The inhibitory SMAD is reduced, meaning exTregs may be more responsive to TGF-beta signals that could drive Foxp3 re-expression.
+
+5. **The "ambidextrous" model**: Rather than a unidirectional Treg-to-effector conversion, these data support a model where exTregs exist in a bistable state — retaining the molecular infrastructure for suppression while actively producing effector cytokines. Environmental cues (TGF-beta, IL-2, antigen context) may tip the balance toward either function.
+
+### Output Files
+
+- `deseq2_shrinkage/heatmap_ambidextrous_phenotype.pdf` — VST heatmap: retained suppressive + TGF-beta + lost + gained effector genes
+- `deseq2_shrinkage/suppressive_retention_barplot.pdf` — Bar plots of retained suppressive molecules across Never/exTreg/Stable
+- `deseq2_shrinkage/tgfb_signaling_panel.pdf` — TGF-beta signaling pathway components across populations
+- `deseq2_shrinkage/dual_identity_waterfall.pdf` — LFC waterfall showing simultaneous suppressive retention and effector gain (exTreg vs Never_Treg)
+- `deseq2_shrinkage/suppressive_retention_percent.pdf` — Percent of Stable_Treg level retained for each suppressive molecule
+
+---
+
 ## Proposed Model: Treg to Tfr to Pathogenic ex-Foxp3 Conversion
 
 ```
@@ -310,21 +382,25 @@ Follicular Regulatory T cell (Tfr)
        |  - c-Maf drives IL-21 production
        |  - Loss of IL-2 signaling
        v
-ex-Treg (Foxp3-, Nrp1+, Helios+)
-+------------------------------------------+
-|  Retained from Tfr:                      |
-|  CXCR5, TIGIT, PD-1, c-MAF, Slamf6      |
-|                                          |
-|  Gained effector functions:              |
-|  IL-21, IL-4, IFN-gamma, IL-2 (robust)  |
-|  Pou2af1, Bhlhe40, Tox2                 |
-|                                          |
-|  GC-associated network:                  |
-|  Pax5, Sostdc1, Serpina9                 |
-|                                          |
-|  Lost suppressive program:               |
-|  Foxp3, Fgl2, BACH2, BLIMP-1            |
-+------------------------------------------+
+ex-Treg (Foxp3-, Nrp1+, Helios+)  "AMBIDEXTROUS"
++------------------------------------------+------------------------------------------+
+|  PRO-TOLEROGENIC (retained)              |  PRO-INFLAMMATORY (gained)               |
+|                                          |                                          |
+|  Foxp3-INDEPENDENT suppression:          |  Polyfunctional cytokines:               |
+|  CTLA-4, CD73, Nrp1, ICOS               |  IL-21, IL-4, IFN-gamma, IL-2            |
+|                                          |                                          |
+|  TGF-beta activation:                   |  Tfh/GC program:                         |
+|  Itgb8 (=Stable_Treg), Nrp1, low Smad7  |  c-MAF, Pou2af1, Tox2, Bhlhe40          |
+|                                          |                                          |
+|  Treg-primed epigenetics:               |  GC-associated network:                  |
+|  Helios (39k), Nrp1 (12k)               |  Pax5, Sostdc1, Serpina9                 |
+|                                          |                                          |
+|  Follicular inhibitory:                  |  Th17 axis:                              |
+|  TIGIT, LAG-3, PD-1 (>Stable_Treg)      |  RORgt, CCR6, HIF-1a                     |
++------------------------------------------+------------------------------------------+
+|  LOST (Foxp3-dependent only):                                                       |
+|  Foxp3, GARP/Lrrc32, FGL-2, BACH2                                                  |
++-------------------------------------------------------------------------------------+
 ```
 
 ### Supporting Evidence from Literature
