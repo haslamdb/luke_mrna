@@ -1,0 +1,7 @@
+"comparison","genes_tested","unshrunken_up","unshrunken_down","shrunken_up","shrunken_down"
+"exTreg_vs_Never_Treg",12854,425,140,264,63
+"Stable_Treg_vs_Never_Treg",12854,754,961,630,736
+"Recent_Treg_vs_Never_Treg",12854,255,50,121,25
+"Stable_Treg_vs_exTreg",12854,390,953,306,560
+"Recent_Treg_vs_exTreg",12854,109,83,61,35
+"Recent_Treg_vs_Stable_Treg",12854,754,205,330,159

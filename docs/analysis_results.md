@@ -400,6 +400,128 @@ Per comparison subdirectories containing:
 
 ---
 
+## LFC Shrinkage Analysis: Refined Confidence Assessment
+
+### Motivation
+
+The initial DESeq2 analysis used raw (unshrunken) log2 fold changes. Genes with low counts can produce extreme fold changes (e.g., 0 vs 3 reads = "infinite" FC) that are statistically significant but biologically unreliable. To separate robust signals from noise, we applied:
+
+1. **apeglm LFC shrinkage** (Zhu et al., *Bioinformatics* 2018) — an empirical Bayes method that pulls fold changes toward zero for genes with low information content (low counts, high variance), while preserving large differences supported by the data.
+2. **baseMean filter ≥ 50** — removing genes with very low average expression across all samples.
+
+Script: `scripts/06_lfc_shrinkage.R` | Output: `deseq2_shrinkage/`
+
+### Impact on DEG Counts
+
+The combined effect of shrinkage + baseMean filtering substantially reduces the gene lists, removing the least reliable hits:
+
+| Comparison | Unshrunken DEGs | Shrunken DEGs | Removed |
+|---|---|---|---|
+| exTreg vs Never_Treg | 565 | 327 | 42% |
+| Stable_Treg vs Never_Treg | 1,715 | 1,366 | 20% |
+| Recent_Treg vs Never_Treg | 305 | 146 | 52% |
+| Stable_Treg vs exTreg | 1,343 | 866 | 36% |
+| Recent_Treg vs exTreg | 192 | 96 | 50% |
+| Recent_Treg vs Stable_Treg | 959 | 489 | 49% |
+
+Maximum |log2FC| was capped from 30.0 (artificial DESeq2 ceiling) down to 11–16 across comparisons.
+
+### What Holds: High-Confidence Findings
+
+The following results survive shrinkage with strong statistical support (exTreg vs Never_Treg unless noted):
+
+**Exhaustion markers — the most robust signal in the dataset:**
+
+| Gene | Protein | Shrunken LFC | padj |
+|---|---|---|---|
+| Pdcd1 | PD-1 | 5.61 | 8.3e-05 |
+| Lag3 | LAG-3 | 4.45 | 2.1e-05 |
+| Tigit | TIGIT | 4.58 | 9.4e-15 |
+| Tox2 | TOX2 | 2.31 | 4.4e-03 |
+
+**Treg origin markers — unambiguous thymic Treg identity:**
+
+| Gene | Protein | Shrunken LFC | padj |
+|---|---|---|---|
+| Nrp1 | Neuropilin-1 | 4.87 | 9.4e-56 |
+| Ikzf2 | Helios | 3.87 | 2.7e-22 |
+| Ctla4 | CTLA-4 | 2.80 | 3.1e-21 |
+| Il2ra | CD25 | 3.16 | 3.1e-18 |
+
+**Core Tfh markers (partial program):**
+
+| Gene | Protein | Shrunken LFC | padj |
+|---|---|---|---|
+| Maf | c-MAF | 2.53 | 6.0e-13 |
+| Cxcr5 | CXCR5 | 2.27 | 2.0e-03 |
+| Slamf6 | Ly108 | 1.05 | 1.2e-05 |
+| Tox2 | TOX2 | 2.31 | 4.4e-03 |
+| Sh2d1a | SAP | 1.22 | 5.8e-03 |
+
+**Th17-associated genes:**
+
+| Gene | Protein | Shrunken LFC | padj |
+|---|---|---|---|
+| Rorc | RORgt | 5.15 | 5.3e-05 |
+| Ccr6 | CCR6 | 3.04 | 6.6e-04 |
+| Bhlhe40 | DEC1 | 3.21 | 5.8e-04 |
+| Hif1a | HIF-1a | 1.21 | 3.4e-04 |
+
+**GC-associated genes — surprisingly robust:**
+
+| Gene | Protein | Shrunken LFC | padj |
+|---|---|---|---|
+| Pax5 | PAX5 | 9.27 | 3.8e-05 |
+| Sostdc1 | SOSTDC1 | 7.83 | 5.0e-05 |
+| Serpina9 | SERPINA9 | 6.88 | 7.1e-04 |
+| Cd22 | CD22 | 5.57 | 7.2e-03 |
+
+**BACH2 downregulation:** LFC = -1.98, padj = 4.2e-08
+
+**Chemokine receptors:** CXCR3 (LFC = 2.11, padj = 0.017) — the CXCR5+CXCR3+ "Tfh1" co-expression pattern remains supported.
+
+### What Does Not Hold After Shrinkage
+
+These genes were highlighted in the initial analysis but do not reach significance (padj < 0.05, |shrunken LFC| > 1) after shrinkage:
+
+| Gene | Protein | Shrunken LFC | padj | Issue |
+|---|---|---|---|---|
+| Bcl6 | BCL-6 | 0.38 | 0.49 | Not significant — modest expression difference with high variance |
+| Il21 | IL-21 | 1.74 | 0.065 | Borderline — just misses padj cutoff |
+| Ascl2 | ASCL2 | 0.05 | 0.59 | Not significant — low baseMean, shrunk to ~0 |
+| Pou2af1 | OBF-1 | 0.06 | 0.94 | Not significant — shrunk to ~0 |
+| Ifng | IFN-gamma | 0.12 | 0.50 | Not significant |
+| Tnf | TNF-alpha | 0.19 | 0.60 | Not significant |
+| Il4 | IL-4 | 0.09 | 0.69 | Not significant |
+| Il17a | IL-17A | — | — | Filtered out (baseMean < 50) |
+| Il2 | IL-2 | 0.01 | 1.0 | Not significant |
+
+### Revised Interpretation
+
+The shrinkage analysis refines the exTreg story in important ways:
+
+**1. Exhaustion is the dominant transcriptional feature.** PD-1, LAG-3, and TIGIT are the most statistically robust findings in the entire dataset. These cells are heavily marked by inhibitory receptors.
+
+**2. The Tfh program is c-MAF-driven, not Bcl6-driven.** The extraordinary c-MAF expression (LFC = 2.53, padj = 6e-13) remains the strongest transcription factor signal. CXCR5 and Slamf6 hold up. But Bcl6 does not reach significance, suggesting that c-MAF — not Bcl6 — may be the primary driver of the Tfh-like features. This is biologically plausible: c-MAF can independently drive CXCR5 expression and IL-21 production, and Bcl6 protein stability is heavily regulated post-translationally (the modest RNA difference may not reflect protein levels).
+
+**3. The polyfunctional cytokine story requires caution.** None of the effector cytokines (IFN-gamma, TNF, IL-21, IL-4, IL-17A) individually reach significance after shrinkage. These are expressed at relatively low absolute levels with high replicate variance — the fold changes from the unshrunken analysis were real but not robust enough for n=3. This does not mean the cytokines aren't produced; it means bulk RNA-seq with 3 replicates is underpowered to call them confidently. Flow cytometry or single-cell data would be needed to confirm polyfunctionality.
+
+**4. Th17 features are more robust than Th1 features.** RORgt (LFC = 5.15), CCR6, and Bhlhe40 all survive shrinkage, while the Th1 markers (IFN-gamma, T-bet) do not. The Treg-to-Th17 axis, driven by HIF-1a and RORgt, is better supported than the Th1 axis.
+
+**5. GC-associated genes are a striking and robust finding.** Pax5, Sostdc1, and Serpina9 all retain very large shrunken LFCs (6.9–9.3), meaning these are not low-count artifacts. Combined with the absence of B cell contamination markers (CD19, CD20, Ebf1), this remains strong evidence for GC-associated transcriptional network activation in exTregs.
+
+**6. Luke's flow cytometry validation aligns with robust hits.** The Tfh signal validated by flow (CXCR5, PD-1) corresponds to genes that survive shrinkage, providing orthogonal confirmation. The protein-level data can fill gaps where transcriptomic power is limited.
+
+### Output Files (`deseq2_shrinkage/`)
+
+- `DEG_shrunk_*.csv` — Shrunken DEG results (baseMean ≥ 50) for all 6 comparisons
+- `MA_*.pdf` — Side-by-side MA plots (unshrunken vs apeglm shrunken) showing how extreme LFCs are pulled in for low-expression genes
+- `volcano_shrunk_*.pdf` — Volcano plots using shrunken log2 fold changes
+- `shrinkage_scatter_*.pdf` — Scatter plots of unshrunken vs shrunken LFC colored by expression level; low-expression genes (dark points) are shrunk the most
+- `shrinkage_summary.csv` — DEG count comparison table
+
+---
+
 ## References
 
 1. Linterman MA et al. Foxp3+ follicular regulatory T cells control the germinal center response. *Nature Medicine* 17, 975–982 (2011).
@@ -409,8 +531,10 @@ Per comparison subdirectories containing:
 5. Dysregulation of humoral immunity in Foxp3 conditional-knockout mice. *Biochem Biophys Res Commun* (2019).
 6. IL-21 restricts T follicular regulatory T cell proliferation through Bcl-6 mediated inhibition of responsiveness to IL-2. *Nature Communications* 8, 14647 (2017).
 7. Pathological conversion of regulatory T cells is associated with loss of allotolerance. *Scientific Reports* 8, 7059 (2018).
+8. Zhu A, Ibrahim JG, Love MI. Heavy-tailed prior distributions for sequence count data: removing the noise and preserving large differences. *Bioinformatics* 35, 2084–2092 (2018).
 
 ---
 
-*Analysis performed March 5, 2026*
-*Pipeline: STAR → featureCounts → DESeq2 → clusterProfiler/fgsea*
+*Initial analysis performed March 5, 2026*
+*LFC shrinkage analysis added March 6, 2026*
+*Pipeline: STAR → featureCounts → DESeq2 (apeglm shrinkage) → clusterProfiler/fgsea*
